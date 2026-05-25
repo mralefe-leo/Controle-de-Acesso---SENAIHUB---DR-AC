@@ -134,6 +134,9 @@ def main():
     if "db" not in st.session_state:
         st.session_state.db = DatabaseManager()
         st.session_state.db_conectado = st.session_state.db.connect()
+
+    if "form_key" not in st.session_state:
+        st.session_state.form_key = 1
     
     carregar_estilo_css()
     
@@ -176,13 +179,13 @@ def main():
         with col_tit2:
             st.markdown("<span style='font-size: 1.75rem; font-weight: 700; line-height: 1; margin-left: -5px;'> Check-in Visitantes</span>", unsafe_allow_html=True)
             
-        with st.form(key="form_checkin", clear_on_submit=True):
+        with st.form(key=f"form_checkin_{st.session_state.form_key}", clear_on_submit=False):
             col1, col2 = st.columns(2)
             
             with col1:
                 nome = st.text_input("Nome Completo *", placeholder="Ex: Sadraque de Oliveira")
-                cpf = st.text_input("CPF *", placeholder="000.000.000-00", max_chars=14)
-                telefone = st.text_input("Telefone com DDD *", placeholder="(68) XXXX-XXXX", max_chars=15)
+                cpf = st.text_input("CPF *", placeholder="Apenas números (ex: 12345678900)", max_chars=14)
+                telefone = st.text_input("Telefone com DDD *", placeholder="Apenas números (ex: 68999999999)", max_chars=15)
                 
             with col2:
                 local = st.selectbox("Destino do Visitante *", LOCAIS_SENAI)
@@ -202,11 +205,25 @@ def main():
                     st.error("❌ CPF inválido. Verifique os números digitados e tente novamente.")
                 elif not validar_telefone(telefone):
                     st.error("❌ Telefone inválido. Certifique-se de digitar o DDD e o nono dígito (ex: 68 9XXXX-XXXX).")
+                # 4. Se passar por todos os bloqueios, formata e salva no banco!
                 else:
+                    # Limpa qualquer coisa que não seja número (caso a pessoa tenha digitado traço por costume)
+                    cpf_limpo = re.sub(r'[^0-9]', '', cpf)
+                    tel_limpo = re.sub(r'[^0-9]', '', telefone)
+                    
+                    # Aplica a máscara perfeita no CPF
+                    cpf_mascara = f"{cpf_limpo[:3]}.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-{cpf_limpo[9:]}"
+                    
+                    # Aplica a máscara perfeita no Telefone (Trata 10 ou 11 dígitos)
+                    if len(tel_limpo) == 11:
+                        tel_mascara = f"({tel_limpo[:2]}) {tel_limpo[2:7]}-{tel_limpo[7:]}"
+                    else:
+                        tel_mascara = f"({tel_limpo[:2]}) {tel_limpo[2:6]}-{tel_limpo[6:]}"
+
                     payload_visitante = {
                         "nome_completo": nome,
-                        "cpf": cpf,
-                        "telefone": telefone,
+                        "cpf": cpf_mascara,          # Agora manda o CPF bonitão
+                        "telefone": tel_mascara,     # Agora manda o Telefone bonitão
                         "local_visitado": local,
                         "numero_cracha": cracha_selecionado,
                         "objetivo": objetivo
@@ -221,17 +238,18 @@ def main():
                         <div style='background-color: #DCFCE7; border-left: 6px solid #16A34A; padding: 20px; border-radius: 8px; margin-top: 15px;'>
                             <h3 style='color: #166534; margin: 0;'>✅ CADASTRO VERIFICADO E LIBERADO!</h3>
                             <p style='color: #1F2937; margin-top: 10px; font-size: 16px;'>
-                                O crachá de número <b>{cracha_selecionado}</b> foi alocado com sucesso para <b>{nome.upper()}</b> com destino ao setor <b>{local}</b>.
+                                O crachá de número <b>{cracha_selecionado}</b> foi alocado com sucesso para <b>{nome.upper()}</b>.
                             </p>
                         </div>
                         """, unsafe_allow_html=True)
-                    
                         
                         progresso = st.progress(0)
                         for i in range(100):
                             time.sleep(0.02)
                             progresso.progress(i + 1)
                             
+                        # ISSO AQUI LIMPA O FORMULÁRIO APENAS NO SUCESSO!
+                        st.session_state.form_key += 1 
                         st.rerun()
                     else:
                         st.error("❌ Falha crítica de comunicação com a planilha. Tente novamente.")
