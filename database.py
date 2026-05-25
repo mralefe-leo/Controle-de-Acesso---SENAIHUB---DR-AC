@@ -1,3 +1,4 @@
+import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
 import os
@@ -17,22 +18,23 @@ class DatabaseManager:
 
     def connect(self):
         try:
-            # 1. Tenta conectar localmente pelo arquivo (no seu PC)
+            
             if os.path.exists("google_creds.json"):
                 self.client = gspread.service_account(filename="google_creds.json")
                 
-            # 2. Se o arquivo não existir, puxa do cofre de Secrets (Na Nuvem)
+            
             else:
-                # Converte os segredos do TOML em um dicionário que o Google entende
                 credenciais_google = dict(st.secrets["connections"]["gsheets"])
                 self.client = gspread.service_account_from_dict(credenciais_google)
 
-            # --- A PARTIR DAQUI O SEU CÓDIGO CONTINUA IGUAL ---
-            # Exemplo: self.sheet = self.client.open("Sua_Planilha").sheet1
+            
+            planilha = self.client.open(self.sheet_name)
+            self.worksheet = planilha.sheet1 
             
             return True
             
         except Exception as e:
+            
             print(f"Erro ao conectar com o banco: {e}")
             return False
 
