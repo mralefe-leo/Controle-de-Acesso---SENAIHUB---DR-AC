@@ -33,8 +33,10 @@ class DatabaseManager:
             
             return True
             
+        
         except Exception as e:
-            
+            # Mostra o erro exato do Google Cloud direto na tela do sistema
+            st.error(f"⚠️ Erro Real do Banco: {e}") 
             print(f"Erro ao conectar com o banco: {e}")
             return False
 
