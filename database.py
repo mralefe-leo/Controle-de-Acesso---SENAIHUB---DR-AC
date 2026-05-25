@@ -15,19 +15,25 @@ class DatabaseManager:
         self.client = None
         self.worksheet = None
 
-    def connect(self) -> bool:
-        """Estabelece conexão segura com a API do Google Sheets."""
+    def connect(self):
         try:
-            if not os.path.exists(self.creds_path):
-                raise FileNotFoundError(f"Arquivo de credenciais não encontrado em: {self.creds_path}")
+            # 1. Tenta conectar localmente pelo arquivo (no seu PC)
+            if os.path.exists("google_creds.json"):
+                self.client = gspread.service_account(filename="google_creds.json")
                 
-            creds = Credentials.from_service_account_file(self.creds_path, scopes=self.scope)
-            self.client = gspread.authorize(creds)
-            spreadsheet = self.client.open(self.sheet_name)
-            self.worksheet = spreadsheet.worksheet("movimentacoes")
+            # 2. Se o arquivo não existir, puxa do cofre de Secrets (Na Nuvem)
+            else:
+                # Converte os segredos do TOML em um dicionário que o Google entende
+                credenciais_google = dict(st.secrets["connections"]["gsheets"])
+                self.client = gspread.service_account_from_dict(credenciais_google)
+
+            # --- A PARTIR DAQUI O SEU CÓDIGO CONTINUA IGUAL ---
+            # Exemplo: self.sheet = self.client.open("Sua_Planilha").sheet1
+            
             return True
+            
         except Exception as e:
-            print(f"❌ Erro crítico de conexão com o banco de dados: {e}")
+            print(f"Erro ao conectar com o banco: {e}")
             return False
 
     def registrar_entrada(self, dados_visitante: dict) -> bool:
