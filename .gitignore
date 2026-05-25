@@ -1,0 +1,9 @@
+# Ignorar credenciais do Google
+google_creds.json
+
+# Ignorar senhas e segredos locais
+.streamlit/
+
+# Ignorar arquivos temporários do Python
+__pycache__/
+*.pyc

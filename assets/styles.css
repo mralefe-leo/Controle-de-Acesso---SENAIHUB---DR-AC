@@ -1,0 +1,312 @@
+/* =========================================================
+   AJUSTE GLOBAL DO CONTAINER STREAMLIT
+========================================================= */
+
+.block-container {
+    padding-top: 0rem !important;
+}
+
+
+/* =========================================================
+   FORMULÁRIOS
+========================================================= */
+
+.stForm,
+[data-testid="stForm"] {
+    border: 1px solid rgba(148, 163, 184, 0.25) !important;
+    border-radius: 16px !important;
+    padding: 2.5rem !important;
+
+    background-color: var(--secondary-background-color) !important;
+
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.05),
+        0 10px 10px -5px rgba(0, 0, 0, 0.03) !important;
+}
+
+
+/* =========================================================
+   INPUTS
+========================================================= */
+
+[data-testid="stForm"] input,
+[data-testid="stForm"] select,
+[data-testid="stForm"] textarea,
+[data-testid="stForm"] div[data-baseweb="select"] {
+
+    border-radius: 10px !important;
+
+    border: 1px solid rgba(148, 163, 184, 0.4) !important;
+
+    background-color: var(--background-color) !important;
+
+    color: var(--text-color) !important;
+}
+
+[data-testid="stForm"] input:focus,
+[data-testid="stForm"] textarea:focus {
+
+    border-color: #F15A24 !important;
+
+    box-shadow: 0 0 0 3px rgba(241, 90, 36, 0.25) !important;
+}
+
+
+/* =========================================================
+   HEADER PRINCIPAL (Alinhamento Central Absoluto)
+========================================================= */
+
+.header-container {
+    background: #1D4ED8;
+    padding: 40px 20px !important;
+    border-radius: 0 0 18px 18px;
+    width: calc(100% + 100px);
+    margin-top: 0px !important; 
+    margin-left: -50px;
+    margin-bottom: 25px; 
+    
+    /* Força Flexbox com centralização total */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important; 
+    justify-content: center !important; 
+    gap: 12px !important;
+    
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+
+.header-logo {
+    max-height: 86px !important; 
+    width: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+    transform: translateX(-9px) !important; 
+}
+
+/* Bloco dos textos - 100% alinhado ao centro */
+.header-text {
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    margin: 0 auto !important;
+}
+
+.header-container h1,
+.header-text h1 {
+    color: #FFFFFF !important;
+    margin: 0 auto !important;
+    font-size: 38px !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+.header-container p,
+.header-text p {
+    color: #CBD5E1 !important;
+    margin: 5px auto 0 auto !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+}
+/* Esconde o ícone de link automático do Streamlit que desalinha o título */
+.header-container h1 a,
+.header-text h1 a {
+    display: none !important;
+}
+
+/* Garante o alinhamento central limpo do parágrafo */
+.header-container p,
+.header-text p {
+    color: #CBD5E1 !important;
+    margin: 5px 0 0 0 !important; 
+    padding: 0 !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+/* =========================================================
+   TABS CENTRALIZADAS
+========================================================= */
+
+.stTabs {
+    width: 100%;
+}
+
+/* CONTAINER DAS TABS */
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 10px;
+    background-color: var(--secondary-background-color);
+    padding: 10px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    width: fit-content;
+    
+    
+    margin: 0 auto 15px auto; 
+    
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+
+/* BOTÕES */
+.stTabs [data-baseweb="tab"] {
+
+    height: 50px;
+
+    white-space: nowrap;
+
+    border-radius: 12px;
+
+    padding-left: 24px;
+
+    padding-right: 24px;
+
+    font-weight: 600;
+
+    transition: all 0.25s ease;
+}
+
+
+/* HOVER */
+.stTabs [data-baseweb="tab"]:hover {
+
+    background-color: rgba(29, 78, 216, 0.08);
+
+    color: #1D4ED8;
+}
+
+
+/* TAB ATIVA */
+.stTabs [aria-selected="true"] {
+
+    background-color: #1D4ED8 !important;
+
+    color: white !important;
+
+    box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+}
+
+
+/* REMOVE LINHA VERMELHA NATIVA */
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: transparent !important;
+}
+
+
+/* =========================================================
+   BOTÃO SUBMIT
+========================================================= */
+
+[data-testid="stFormSubmitButton"] {
+
+    display: flex;
+
+    justify-content: flex-start;
+}
+
+[data-testid="stFormSubmitButton"] button {
+
+    background: linear-gradient(135deg, #F15A24 0%, #D94E1B 100%) !important;
+
+    border-radius: 10px !important;
+
+    border: none !important;
+
+    padding: 0.75rem 2.5rem !important;
+
+    box-shadow: 0 4px 14px rgba(241, 90, 36, 0.4) !important;
+
+    transition: all 0.3s ease !important;
+
+    width: auto !important;
+
+    cursor: pointer !important;
+}
+
+[data-testid="stFormSubmitButton"] button,
+[data-testid="stFormSubmitButton"] button p {
+
+    color: #FFFFFF !important;
+
+    font-weight: 700 !important;
+
+    font-size: 1rem !important;
+
+    letter-spacing: 0.5px !important;
+}
+
+/* HOVER */
+[data-testid="stFormSubmitButton"] button:hover {
+
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
+
+    box-shadow: 0 6px 20px rgba(29, 78, 216, 0.45) !important;
+
+    transform: translateY(-2px) !important;
+}
+
+/* ACTIVE */
+[data-testid="stFormSubmitButton"] button:active {
+
+    transform: translateY(1px) !important;
+
+    box-shadow: 0 2px 8px rgba(29, 78, 216, 0.2) !important;
+}
+
+
+/* =========================================================
+   FOOTER LOGO
+========================================================= */
+
+.footer-logo {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    margin-top: 50px;
+
+    margin-bottom: 10px;
+}
+
+
+/* =========================================================
+   FOOTER TEXTO
+========================================================= */
+
+.footer-container {
+
+    width: 100%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 20px 0 30px 0;
+
+    text-align: center;
+}
+
+.version-text {
+
+    color: #64748B;
+
+    font-size: 12px;
+
+    font-family: 'Inter', sans-serif;
+}
