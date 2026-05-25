@@ -127,9 +127,7 @@ LOCAIS_SENAI = [
     "Laboratório em Ensaio Cerâmico e Solos"
 ]
 
-# =========================================================
-# FUNÇÃO PRINCIPAL DO SISTEMA (MAIN)
-# =========================================================
+
 def main():
     import base64
     
@@ -227,7 +225,7 @@ def main():
                             </p>
                         </div>
                         """, unsafe_allow_html=True)
-                        st.balloons() 
+                    
                         
                         progresso = st.progress(0)
                         for i in range(100):
