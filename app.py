@@ -4,39 +4,72 @@ import os
 import time
 import re
 
-# =========================================================
-# CONFIGURAÇÃO GERAL DA PÁGINA (DEVE SER O PRIMEIRO COMANDO)
-# =========================================================
+
 st.set_page_config(
     page_title="AcessoHub",
     page_icon="assets/logo.png",
     layout="wide"
 )
 
-# =========================================================
-# TELA DE LOGIN E CONTROLE DE ACESSO
-# =========================================================
+
+def carregar_estilo_css():
+    caminho_css = "assets/styles.css"
+    if os.path.exists(caminho_css):
+        with open(caminho_css, "r", encoding="utf-8") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+carregar_estilo_css()
+
 def verificar_senha():
     """Retorna True se o usuário já colocou a senha correta, False caso contrário."""
     if st.session_state.get("autenticado", False):
         return True
 
+    # 1. INJETA CSS ESPECÍFICO SÓ PARA A TELA DE LOGIN
+    st.markdown("""
+        <style>
+            /* Pinta o fundo da tela inteira de Azul SENAI */
+            [data-testid="stAppViewContainer"] {
+                background-color: #1D4ED8 !important;
+            }
+            /* Deixa a barra superior transparente */
+            [data-testid="stHeader"] {
+                background-color: transparent !important;
+            }
+            /* Força o cartão de login a ser branco e flutuante */
+            [data-testid="stForm"] {
+                background-color: #FFFFFF !important;
+                border: none !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+            }
+            /* Força o texto dentro do input a ficar escuro */
+            [data-testid="stForm"] label {
+                color: #1E293B !important;
+                font-weight: 600 !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     import base64
+    import os
     
     caminho_logo_branca = os.path.join("assets", "logo_branca.png")
     img_tag = ""
     if os.path.exists(caminho_logo_branca):
         with open(caminho_logo_branca, "rb") as f:
             logo_b64 = base64.b64encode(f.read()).decode()
-            img_tag = f'<img src="data:image/png;base64,{logo_b64}" class="header-logo" style="margin-bottom: 20px;">'
+            # 2. CSS INLINE NA LOGO: Garante tamanho perfeito (max 300px) e centralização absoluta
+            img_tag = f'<img src="data:image/png;base64,{logo_b64}" style="max-width: 300px; width: 100%; margin: 0 auto; display: block; margin-bottom: 20px;">'
             
     _, col_login, _ = st.columns([1, 1.2, 1])
     
     with col_login:
         st.write("")
         st.write("")
-        st.markdown(f"<div style='text-align: center;'>{img_tag}</div>", unsafe_allow_html=True)
-        st.markdown("<h2 style='text-align: center; color: #1D4ED8; margin-bottom: 30px;'>🔒 Acesso Restrito</h2>", unsafe_allow_html=True)
+        st.write("") # Mais respiro no topo
+        st.markdown(f"{img_tag}", unsafe_allow_html=True)
+        # 3. Título branco para contrastar com o fundo azul
+        st.markdown("<h2 style='text-align: center; color: #FFFFFF; margin-bottom: 30px; font-weight: 700;'>🔒 Acesso Restrito</h2>", unsafe_allow_html=True)
         
         with st.form("form_login"):
             senha_digitada = st.text_input("Senha de Acesso", type="password", placeholder="Digite a senha corporativa...")
