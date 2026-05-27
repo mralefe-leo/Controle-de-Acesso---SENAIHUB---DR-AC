@@ -2,8 +2,9 @@ import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
+
 
 class DatabaseManager:
     def __init__(self):
@@ -18,24 +19,22 @@ class DatabaseManager:
 
     def connect(self):
         try:
-            
-            if os.path.exists("google_creds.json"):
-                self.client = gspread.service_account(filename="google_creds.json")
+            # 1. Tenta conectar localmente pelo arquivo dentro da pasta .secrets (No seu PC)
+            if os.path.exists(self.creds_path):
+                self.client = gspread.service_account(filename=self.creds_path)
                 
-            
+            # 2. Se o arquivo não existir, puxa do cofre de Secrets (Na Nuvem)
             else:
                 credenciais_google = dict(st.secrets["connections"]["gsheets"])
                 self.client = gspread.service_account_from_dict(credenciais_google)
 
-            
+            # 3. Abre a planilha e conecta na primeira aba
             planilha = self.client.open(self.sheet_name)
             self.worksheet = planilha.sheet1 
             
             return True
             
-        
         except Exception as e:
-            # Mostra o erro exato do Google Cloud direto na tela do sistema
             st.error(f"⚠️ Erro Real do Banco: {e}") 
             print(f"Erro ao conectar com o banco: {e}")
             return False
@@ -46,7 +45,7 @@ class DatabaseManager:
             if not self.worksheet and not self.connect():
                 return False
                 
-            agora = datetime.now()
+            agora = datetime.utcnow() - timedelta(hours=5)
             data_entrada_formatada = agora.strftime("%d/%m/%Y %H:%M:%S")
             
             cpf_limpo = "".join(filter(str.isdigit, dados_visitante["cpf"]))
@@ -83,6 +82,18 @@ class DatabaseManager:
         except Exception as e:
             print(f"❌ Erro ao listar visitantes ativos: {e}")
             return []
+        
+    def listar_todos_registros(self) -> list:
+        """Retorna absolutamente todos os registros da planilha para consulta de histórico."""
+        try:
+            if not self.worksheet and not self.connect():
+                return []
+                
+            # Retorna todas as linhas da planilha
+            return self.worksheet.get_all_records()
+        except Exception as e:
+            print(f"❌ Erro ao listar histórico completo: {e}")
+            return []
 
     def registrar_saida(self, id_registro: str) -> bool:
         """Localiza o visitante ativo pelo ID único e insere o horário de saída."""
@@ -94,7 +105,7 @@ class DatabaseManager:
             
             if celula_id:
                 linha = celula_id.row
-                agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                agora = (datetime.utcnow() - timedelta(hours=5)).strftime("%d/%m/%Y %H:%M:%S")
         
                 self.worksheet.update_cell(linha, 8, agora)
                 return True

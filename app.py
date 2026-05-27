@@ -3,6 +3,7 @@ from database import DatabaseManager
 import os
 import time
 import re
+from datetime import datetime, timedelta
 
 
 st.set_page_config(
@@ -25,7 +26,7 @@ def verificar_senha():
     if st.session_state.get("autenticado", False):
         return True
 
-    # 1. INJETA CSS ESPECÍFICO SÓ PARA A TELA DE LOGIN
+    
     st.markdown("""
         <style>
             /* Pinta o fundo da tela inteira de Azul SENAI */
@@ -58,7 +59,7 @@ def verificar_senha():
     if os.path.exists(caminho_logo_branca):
         with open(caminho_logo_branca, "rb") as f:
             logo_b64 = base64.b64encode(f.read()).decode()
-            # 2. CSS INLINE NA LOGO: Garante tamanho perfeito (max 300px) e centralização absoluta
+            
             img_tag = f'<img src="data:image/png;base64,{logo_b64}" style="max-width: 300px; width: 100%; margin: 0 auto; display: block; margin-bottom: 20px;">'
             
     _, col_login, _ = st.columns([1, 1.2, 1])
@@ -66,9 +67,9 @@ def verificar_senha():
     with col_login:
         st.write("")
         st.write("")
-        st.write("") # Mais respiro no topo
+        st.write("") 
         st.markdown(f"{img_tag}", unsafe_allow_html=True)
-        # 3. Título branco para contrastar com o fundo azul
+        
         st.markdown("<h2 style='text-align: center; color: #FFFFFF; margin-bottom: 30px; font-weight: 700;'>🔒 Acesso Restrito</h2>", unsafe_allow_html=True)
         
         with st.form("form_login"):
@@ -84,9 +85,7 @@ def verificar_senha():
                     
     return False
 
-# =========================================================
-# FUNÇÕES DE VALIDAÇÃO MATEMÁTICA E CSS
-# =========================================================
+
 def validar_cpf(cpf: str) -> bool:
     cpf_limpo = re.sub(r'[^0-9]', '', cpf)
     if len(cpf_limpo) != 11:
@@ -205,16 +204,16 @@ def main():
                     st.error("❌ CPF inválido. Verifique os números digitados e tente novamente.")
                 elif not validar_telefone(telefone):
                     st.error("❌ Telefone inválido. Certifique-se de digitar o DDD e o nono dígito (ex: 68 9XXXX-XXXX).")
-                # 4. Se passar por todos os bloqueios, formata e salva no banco!
+                
                 else:
-                    # Limpa qualquer coisa que não seja número (caso a pessoa tenha digitado traço por costume)
+                    
                     cpf_limpo = re.sub(r'[^0-9]', '', cpf)
                     tel_limpo = re.sub(r'[^0-9]', '', telefone)
                     
-                    # Aplica a máscara perfeita no CPF
+                    
                     cpf_mascara = f"{cpf_limpo[:3]}.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-{cpf_limpo[9:]}"
                     
-                    # Aplica a máscara perfeita no Telefone (Trata 10 ou 11 dígitos)
+                    
                     if len(tel_limpo) == 11:
                         tel_mascara = f"({tel_limpo[:2]}) {tel_limpo[2:7]}-{tel_limpo[7:]}"
                     else:
@@ -222,8 +221,8 @@ def main():
 
                     payload_visitante = {
                         "nome_completo": nome,
-                        "cpf": cpf_mascara,          # Agora manda o CPF bonitão
-                        "telefone": tel_mascara,     # Agora manda o Telefone bonitão
+                        "cpf": cpf_mascara,          
+                        "telefone": tel_mascara,     
                         "local_visitado": local,
                         "numero_cracha": cracha_selecionado,
                         "objetivo": objetivo
@@ -248,7 +247,7 @@ def main():
                             time.sleep(0.02)
                             progresso.progress(i + 1)
                             
-                        # ISSO AQUI LIMPA O FORMULÁRIO APENAS NO SUCESSO!
+                        
                         st.session_state.form_key += 1 
                         st.rerun()
                     else:
@@ -290,31 +289,80 @@ def main():
                                 st.error("Erro ao encerrar visitas.")
     
     with aba_ativos:
-        col_tit5, col_tit6 = st.columns([35, 1000], vertical_alignment="center")
+        col_tit5, col_tit6 = st.columns([35, 1000])
         with col_tit5:
             st.image("assets/icon_monitor.png", width=32)
         with col_tit6:
-            st.markdown("<span style='font-size: 1.75rem; font-weight: 700; line-height: 1; margin-left: -5px;'>Painel Monitoramento</span>", unsafe_allow_html=True)
+            st.markdown("<span style='font-size: 1.75rem; font-weight: 700; line-height: 1; margin-left: -5px;'>Painel de Monitoramento e Histórico</span>", unsafe_allow_html=True)
             
-        if visitantes_ativos:
+        st.write("")
+        
+        
+        if "filtro_monitor" not in st.session_state:
+            st.session_state.filtro_monitor = "🟢 Visitantes Ativos Agora"
+        
+        
+        col_f1, col_f2 = st.columns([1.5, 1])
+        
+        with col_f1:
+            st.radio(
+                "Modo de Visualização:",
+                ["🟢 Visitantes Ativos Agora", "📅 Histórico por Data"],
+                horizontal=True,
+                key="filtro_monitor" 
+            )
+            
+        
+        if st.session_state.filtro_monitor == "🟢 Visitantes Ativos Agora":
+            dados_exibicao = visitantes_ativos
+            texto_vazio = "ℹ️ Portaria limpa. Não há visitantes ativos ou crachás em circulação na unidade no momento."
+            
+        else:
+            with col_f2:
+                data_selecionada = st.date_input(
+                    "Escolha a data para consulta:", 
+                    (datetime.utcnow() - timedelta(hours=5)).date(),
+                    key="calendario_busca"
+                )
+            
+            data_busca = data_selecionada.strftime("%d/%m/%Y")
+            
+            with st.spinner("Buscando registros no histórico..."):
+                todos_registros = st.session_state.db.listar_todos_registros()
+            
+            dados_exibicao = [
+                r for r in todos_registros 
+                if str(r.get("data_entrada", "")).startswith(data_busca)
+            ]
+            texto_vazio = f"ℹ️ Nenhum registro de visitante encontrado para o dia {data_busca}."
+
+        # 3. EXIBIÇÃO DA TABELA BLINDADA
+        if dados_exibicao:
             import pandas as pd
-            df_ativos = pd.DataFrame(visitantes_ativos)
-            df_exibicao = df_ativos[["numero_cracha", "nome_completo", "local_visitado", "data_entrada", "telefone", "objetivo"]]
-            df_exibicao.columns = ["Crachá", "Nome do Visitante", "Local Destino", "Horário Entrada", "Telefone contato", "Objetivo"]
-            st.dataframe(df_exibicao, use_container_width=True, hide_index=True)
+            df_ativos = pd.DataFrame(dados_exibicao)
+            
+            colunas_necessarias = ["numero_cracha", "nome_completo", "local_visitado", "data_entrada", "data_saida", "telefone", "objetivo"]
+            for col in colunas_necessarias:
+                if col not in df_ativos.columns:
+                    df_ativos[col] = ""
+            
+            df_exibicao = df_ativos[["numero_cracha", "nome_completo", "local_visitado", "data_entrada", "data_saida", "telefone", "objetivo"]]
+            df_exibicao.columns = ["Crachá", "Nome do Visitante", "Local Destino", "Horário Entrada", "Horário Saída", "Telefone", "Objetivo Visita"]
+            
+            
+            chave_tabela = f"tabela_{st.session_state.filtro_monitor}_{st.session_state.get('form_key', 0)}"
+            
+            st.dataframe(
+                df_exibicao, 
+                use_container_width=True, 
+                hide_index=True, 
+                key=chave_tabela 
+            )
         else:
             st.write("") 
-            st.info("ℹ️ Painel limpo. Não ha visitantes ativos ou crachás em circulação na unidade no momento.")
-   
-    st.markdown("""
-        <div class="footer-container">
-            <div class="version-text">(AcessoHUB v1.0 - Sistema de Controle de Acesso)</div>
-        </div>
-    """, unsafe_allow_html=True)
+            st.info(texto_vazio)
 
-# =========================================================
-# INICIALIZAÇÃO E BLINDAGEM DO APLICATIVO (SEMPRE NO FINAL)
-# =========================================================
+
 if __name__ == "__main__":
     if not verificar_senha():
         st.stop() 
