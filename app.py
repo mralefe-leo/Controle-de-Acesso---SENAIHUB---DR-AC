@@ -74,7 +74,7 @@ def verificar_senha():
         
         with st.form("form_login"):
             senha_digitada = st.text_input("Senha de Acesso", type="password", placeholder="Digite a senha corporativa...")
-            submit_login = st.form_submit_button("🔓 Entrar no Sistema", use_container_width=True)
+            submit_login = st.form_submit_button("Entrar no Sistema", use_container_width=True)
             
             if submit_login:
                 if senha_digitada == st.secrets["SENHA_PORTARIA"]:
