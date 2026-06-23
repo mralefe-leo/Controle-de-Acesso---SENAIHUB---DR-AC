@@ -1,15 +1,7 @@
-/* =========================================================
-   AJUSTE GLOBAL DO CONTAINER STREAMLIT
-========================================================= */
-
 .block-container {
     padding-top: 0rem !important;
 }
 
-
-/* =========================================================
-   FORMULÁRIOS
-========================================================= */
 
 .stForm,
 [data-testid="stForm"] {
@@ -24,10 +16,6 @@
         0 10px 10px -5px rgba(0, 0, 0, 0.03) !important;
 }
 
-
-/* =========================================================
-   INPUTS
-========================================================= */
 
 [data-testid="stForm"] input,
 [data-testid="stForm"] select,
@@ -205,63 +193,62 @@
 
 
 /* =========================================================
-   BOTÃO SUBMIT
+   BOTÕES DO FORMULÁRIO (CANCELAR vs FINALIZAR)
 ========================================================= */
 
 [data-testid="stFormSubmitButton"] {
-
     display: flex;
-
-    justify-content: flex-start;
+    width: 100%;
 }
 
+/* ESTILO BASE (Comum para os dois botões) */
 [data-testid="stFormSubmitButton"] button {
-
-    background: linear-gradient(135deg, #F15A24 0%, #D94E1B 100%) !important;
-
     border-radius: 10px !important;
-
     border: none !important;
-
-    padding: 0.75rem 2.5rem !important;
-
-    box-shadow: 0 4px 14px rgba(241, 90, 36, 0.4) !important;
-
-    transition: all 0.3s ease !important;
-
-    width: auto !important;
-
-    cursor: pointer !important;
-}
-
-[data-testid="stFormSubmitButton"] button,
-[data-testid="stFormSubmitButton"] button p {
-
-    color: #FFFFFF !important;
-
+    padding: 0.75rem 1.5rem !important;
     font-weight: 700 !important;
-
     font-size: 1rem !important;
-
-    letter-spacing: 0.5px !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+    height: 50px !important; /* Força os dois a terem a mesma altura */
 }
 
-/* HOVER */
-[data-testid="stFormSubmitButton"] button:hover {
+/* --- BOTÃO CANCELAR (Secundário -> Laranja SENAI) --- */
+[data-testid="stFormSubmitButton"] button[kind="secondaryFormSubmit"],
+[data-testid="stFormSubmitButton"] button[kind="secondary"] {
+    background: linear-gradient(135deg, #F15A24 0%, #D94E1B 100%) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px rgba(241, 90, 36, 0.4) !important;
+}
 
-    background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
-
-    box-shadow: 0 6px 20px rgba(29, 78, 216, 0.45) !important;
-
+[data-testid="stFormSubmitButton"] button[kind="secondaryFormSubmit"]:hover,
+[data-testid="stFormSubmitButton"] button[kind="secondary"]:hover {
+    background: linear-gradient(135deg, #D94E1B 0%, #BF4518 100%) !important;
+    box-shadow: 0 6px 20px rgba(241, 90, 36, 0.5) !important;
     transform: translateY(-2px) !important;
+    color: #FFFFFF !important;
 }
 
-/* ACTIVE */
+/* --- BOTÃO FINALIZAR E LIBERAR (Primário -> Azul Institucional) --- */
+[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"],
+[data-testid="stFormSubmitButton"] button[kind="primary"] {
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px rgba(29, 78, 216, 0.4) !important;
+}
+
+[data-testid="stFormSubmitButton"] button[kind="primaryFormSubmit"]:hover,
+[data-testid="stFormSubmitButton"] button[kind="primary"]:hover {
+    background: linear-gradient(135deg, #1E40AF 0%, #172554 100%) !important;
+    box-shadow: 0 6px 20px rgba(29, 78, 216, 0.5) !important;
+    transform: translateY(-2px) !important;
+    color: #FFFFFF !important;
+}
+
+/* --- EFEITO DE CLIQUE (Para ambos) --- */
 [data-testid="stFormSubmitButton"] button:active {
-
     transform: translateY(1px) !important;
-
-    box-shadow: 0 2px 8px rgba(29, 78, 216, 0.2) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
 

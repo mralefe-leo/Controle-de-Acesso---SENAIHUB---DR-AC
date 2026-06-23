@@ -3,8 +3,6 @@ import gspread
 from google.oauth2.service_account import Credentials
 import os
 from datetime import datetime, timedelta
-import pandas as pd
-
 
 class DatabaseManager:
     def __init__(self):
@@ -15,34 +13,57 @@ class DatabaseManager:
         self.creds_path = os.path.join(".secrets", "google_creds.json")
         self.sheet_name = "AcessoHub_DB"
         self.client = None
-        self.worksheet = None
+        
+        
+        self.ws_movimentacao = None
+        self.ws_visitantes = None
 
     def connect(self):
         try:
-            # 1. Tenta conectar localmente pelo arquivo dentro da pasta .secrets (No seu PC)
             if os.path.exists(self.creds_path):
                 self.client = gspread.service_account(filename=self.creds_path)
-                
-            # 2. Se o arquivo não existir, puxa do cofre de Secrets (Na Nuvem)
             else:
                 credenciais_google = dict(st.secrets["connections"]["gsheets"])
                 self.client = gspread.service_account_from_dict(credenciais_google)
 
-            # 3. Abre a planilha e conecta na primeira aba
             planilha = self.client.open(self.sheet_name)
-            self.worksheet = planilha.sheet1 
+            
+            # Conecta nas duas abas pelo nome exato
+            self.ws_movimentacao = planilha.worksheet("Movimentacao")
+            self.ws_visitantes = planilha.worksheet("Visitantes")
             
             return True
             
         except Exception as e:
-            st.error(f"⚠️ Erro Real do Banco: {e}") 
-            print(f"Erro ao conectar com o banco: {e}")
+            st.error(f"⚠️ Erro ao conectar. Verifique se as abas se chamam 'Movimentacao' e 'Visitantes'. Detalhe: {e}")
             return False
 
-    def registrar_entrada(self, dados_visitante: dict) -> bool:
-        """Salva a entrada do visitante na planilha incluindo o número do crachá."""
+    def buscar_visitante_por_cpf(self, cpf_busca: str) -> dict:
+        """Busca se o visitante já existe na base de cadastro limpa (Aba Visitantes)."""
         try:
-            if not self.worksheet and not self.connect():
+            if not self.ws_visitantes and not self.connect():
+                return None
+                
+            registros_visitantes = self.ws_visitantes.get_all_records()
+            cpf_limpo_busca = "".join(filter(str.isdigit, cpf_busca))
+            
+            for r in registros_visitantes:
+                cpf_db = "".join(filter(str.isdigit, str(r.get("CPF", ""))))
+                if cpf_db == cpf_limpo_busca:
+                    return {
+                        "nome_completo": r.get("Nome Completo", ""),
+                        "cpf": r.get("CPF", ""),
+                        "telefone": r.get("Telefone", "")
+                    }
+            return None
+        except Exception as e:
+            print(f"❌ Erro ao buscar visitante por CPF: {e}")
+            return None
+
+    def registrar_entrada(self, dados_visitante: dict, is_novo: bool = False) -> bool:
+        """Salva a entrada na Movimentação e, se for novo, cadastra na aba Visitantes."""
+        try:
+            if not self.ws_movimentacao and not self.connect():
                 return False
                 
             agora = datetime.utcnow() - timedelta(hours=5)
@@ -51,7 +72,8 @@ class DatabaseManager:
             cpf_limpo = "".join(filter(str.isdigit, dados_visitante["cpf"]))
             id_registro = f"{cpf_limpo}_{agora.strftime('%Y%m%d%H%M%S')}"
             
-            nova_linha = [
+            # 1. Salva sempre no Livro de Movimentação (Intacto para os seus PDFs)
+            nova_linha_movimento = [
                 id_registro,
                 dados_visitante["nome_completo"].strip().upper(),
                 dados_visitante["cpf"],
@@ -62,54 +84,51 @@ class DatabaseManager:
                 "", 
                 dados_visitante["numero_cracha"] 
             ]
+            self.ws_movimentacao.append_row(nova_linha_movimento)
             
-            self.worksheet.append_row(nova_linha)
+            # 2. Se for um Novo Visitante, salva ele na base limpa de cadastro
+            if is_novo:
+                nova_linha_cadastro = [
+                    dados_visitante["cpf"],
+                    dados_visitante["nome_completo"].strip().upper(),
+                    dados_visitante["telefone"]
+                ]
+                self.ws_visitantes.append_row(nova_linha_cadastro)
+                
             return True
         except Exception as e:
             print(f"❌ Erro ao registrar entrada: {e}")
             return False
 
     def listar_visitantes_ativos(self) -> list:
-        """Retorna uma lista de dicionários contendo apenas os visitantes que estão na unidade."""
         try:
-            if not self.worksheet and not self.connect():
+            if not self.ws_movimentacao and not self.connect():
                 return []
-                
-            todos_registros = self.worksheet.get_all_records()
-            
+            todos_registros = self.ws_movimentacao.get_all_records()
             ativos = [r for r in todos_registros if str(r.get("data_saida", "")).strip() == ""]
             return ativos
         except Exception as e:
-            print(f"❌ Erro ao listar visitantes ativos: {e}")
             return []
         
     def listar_todos_registros(self) -> list:
-        """Retorna absolutamente todos os registros da planilha para consulta de histórico."""
         try:
-            if not self.worksheet and not self.connect():
+            if not self.ws_movimentacao and not self.connect():
                 return []
-                
-            # Retorna todas as linhas da planilha
-            return self.worksheet.get_all_records()
+            return self.ws_movimentacao.get_all_records()
         except Exception as e:
-            print(f"❌ Erro ao listar histórico completo: {e}")
             return []
 
     def registrar_saida(self, id_registro: str) -> bool:
-        """Localiza o visitante ativo pelo ID único e insere o horário de saída."""
         try:
-            if not self.worksheet and not self.connect():
+            if not self.ws_movimentacao and not self.connect():
                 return False
                 
-            celula_id = self.worksheet.find(id_registro, in_column=1)
-            
+            celula_id = self.ws_movimentacao.find(id_registro, in_column=1)
             if celula_id:
                 linha = celula_id.row
                 agora = (datetime.utcnow() - timedelta(hours=5)).strftime("%d/%m/%Y %H:%M:%S")
-        
-                self.worksheet.update_cell(linha, 8, agora)
+                self.ws_movimentacao.update_cell(linha, 8, agora)
                 return True
             return False
         except Exception as e:
-            print(f"❌ Erro ao registrar saída no Sheets: {e}")
             return False
